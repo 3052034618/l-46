@@ -275,28 +275,30 @@ const ReviewPage: React.FC = () => {
 
                     <View className={styles.feedbackForm} onClick={(e) => e.stopPropagation()}>
                       <View className={styles.formHeader}>
-                        <Text className={styles.formTitle}>我的反馈</Text>
-                        {renderStars(0, true, review.id)}
+                        <Text className={styles.formTitle}>📝 提交我的反馈</Text>
                       </View>
                       <View className={styles.formBody}>
                         <Text className={styles.formLabel}>活动评分</Text>
                         {renderStars(0, true, review.id)}
                         <Text className={styles.formRatingText}>
                           {(feedbackRating[review.id] || 0) > 0
-                            ? `${feedbackRating[review.id]} 分`
-                            : '请点击星星评分'}
+                            ? `您已选择 ${feedbackRating[review.id]} 分`
+                            : '请点击上方星星选择评分'}
                         </Text>
                       </View>
                       <View className={styles.formTextareaWrap}>
                         <textarea
                           className={styles.formTextarea}
-                          placeholder="分享您的活动体验、建议或遇到的问题..."
+                          placeholder="分享您的活动体验、建议或遇到的问题（不少于5个字）..."
                           value={feedbackContent[review.id] || ''}
                           onInput={(e: any) =>
                             setFeedbackContent({ ...feedbackContent, [review.id]: e.detail.value })
                           }
                           onClick={(e) => e.stopPropagation()}
                         />
+                        <Text className={styles.formCharCount}>
+                          {(feedbackContent[review.id] || '').length} 字
+                        </Text>
                       </View>
                       <View
                         className={classnames(
@@ -311,6 +313,13 @@ const ReviewPage: React.FC = () => {
                         <Text>{submittingFeedback === review.id ? '提交中...' : '提交反馈'}</Text>
                       </View>
                     </View>
+
+                    {review.feedbacks.length === 0 && (
+                      <View className={styles.feedbackEmpty}>
+                        <Text className={styles.feedbackEmptyIcon}>💭</Text>
+                        <Text className={styles.feedbackEmptyText}>暂无反馈，来做第一个分享的人吧~</Text>
+                      </View>
+                    )}
 
                     {review.feedbacks.map((fb) => {
                       const member = members.find((m) => m.id === fb.memberId);

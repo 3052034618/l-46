@@ -368,6 +368,38 @@
   line-height: 1.6;
   margin-bottom: $spacing-lg;
   white-space: pre-line;
+  text-align: left;
+}
+
+.qrCodeData {
+  background: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  text-align: left;
+}
+
+.qrDataLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  display: block;
+  margin-bottom: $spacing-xs;
+}
+
+.qrDataText {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  font-family: monospace;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.waitlistInfo {
+  font-size: $font-size-xs;
+  color: $color-warning;
+  background: rgba(255, 125, 0, 0.08);
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-round;
 }
 
 .qrClose {

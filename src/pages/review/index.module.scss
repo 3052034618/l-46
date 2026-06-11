@@ -179,12 +179,14 @@
 
 .formTextareaWrap {
   margin-bottom: $spacing-md;
+  position: relative;
 }
 
 .formTextarea {
   width: 100%;
   min-height: 160rpx;
   padding: $spacing-md;
+  padding-bottom: $spacing-xl;
   border-radius: $radius-md;
   border: 2rpx solid $color-border;
   background: $color-bg-card;
@@ -199,6 +201,34 @@
     outline: none;
     border-color: $color-primary;
   }
+}
+
+.formCharCount {
+  position: absolute;
+  right: $spacing-md;
+  bottom: $spacing-sm;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.feedbackEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-xl $spacing-md;
+  background: $color-bg-hover;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+}
+
+.feedbackEmptyIcon {
+  font-size: 64rpx;
+  margin-bottom: $spacing-sm;
+}
+
+.feedbackEmptyText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
 }
 
 .submitBtn {

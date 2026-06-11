@@ -19,10 +19,12 @@ const SignupPage: React.FC = () => {
   const getMember = useAppStore((state) => state.getMember);
   const updateReviewStats = useAppStore((state) => state.updateReviewStats);
   const ensureReviewForActivity = useAppStore((state) => state.ensureReviewForActivity);
+  const activities = useAppStore((state) => state.activities);
 
   const [showQRCode, setShowQRCode] = useState(false);
   const [qrActivityId, setQrActivityId] = useState('');
   const [qrActivityTitle, setQrActivityTitle] = useState('');
+  const [qrCodeContent, setQrCodeContent] = useState('');
 
   useDidShow(() => {
     const uniqueActivityIds = [...new Set(signupRecords.map((s) => s.activityId))];
@@ -53,32 +55,64 @@ const SignupPage: React.FC = () => {
     return { total, checked, late, withdrawn, rate };
   }, [mySignups]);
 
+  const generateCheckinQRCode = (activityId: string, activityTitle: string) => {
+    return JSON.stringify({
+      type: 'activity_checkin',
+      activityId,
+      activityTitle,
+      timestamp: Date.now()
+    });
+  };
+
   const verifyQRCode = (result: string) => {
     try {
       const data = JSON.parse(result);
-      if (data && data.type === 'activity_checkin' && data.activityId) {
+      if (data && data.type === 'activity_checkin' && data.activityId && data.activityTitle) {
         return data;
       }
     } catch {
-      // plain text fallback
     }
     return null;
   };
 
+  const handleShowQRCode = () => {
+    const activityOptions = activities.filter(
+      (a) => a.status === 'ongoing' || a.status === 'upcoming'
+    );
+    if (activityOptions.length === 0) {
+      Taro.showToast({ title: '暂无可签到的活动', icon: 'none' });
+      return;
+    }
+    Taro.showActionSheet({
+      itemList: activityOptions.map((a) => `${a.title}（${a.date}）`),
+      success: (res) => {
+        const selected = activityOptions[res.tapIndex];
+        const qrContent = generateCheckinQRCode(selected.id, selected.title);
+        setQrActivityId(selected.id);
+        setQrActivityTitle(selected.title);
+        setQrCodeContent(qrContent);
+        setShowQRCode(true);
+      }
+    });
+  };
+
   const handleScanCode = () => {
-    if (activeTab === 'manage') {
-      if (displayList.length === 0) {
-        Taro.showToast({ title: '暂无待签到成员', icon: 'none' });
-        return;
-      }
-      const firstPending = displayList.find((s) => s.checkinStatus === 'not_checked');
-      if (!firstPending) {
-        Taro.showToast({ title: '所有成员已完成签到', icon: 'none' });
-        return;
-      }
-      setQrActivityId(firstPending.activityId);
-      setQrActivityTitle(firstPending.activityTitle);
-      setShowQRCode(true);
+    if (mySignups.length === 0) {
+      Taro.showModal({
+        title: '无法签到',
+        content: '您还没有报名任何活动，请先到活动广场报名~',
+        showCancel: false
+      });
+      return;
+    }
+
+    const pendingSignups = mySignups.filter((s) => s.checkinStatus === 'not_checked');
+    if (pendingSignups.length === 0) {
+      Taro.showModal({
+        title: '已完成签到',
+        content: '您报名的所有活动均已签到，无需重复操作~',
+        showCancel: false
+      });
       return;
     }
 
@@ -89,9 +123,21 @@ const SignupPage: React.FC = () => {
         const qrData = verifyQRCode(res.result);
         if (!qrData) {
           Taro.showModal({
-            title: '二维码无效',
-            content: `扫描内容: ${res.result}\n\n该二维码不是有效的活动签到码`,
-            showCancel: false
+            title: '❌ 二维码无效',
+            content: `扫描内容:\n${res.result}\n\n这不是有效的活动签到码，请扫描团长出示的签到二维码。`,
+            showCancel: false,
+            confirmText: '知道了'
+          });
+          return;
+        }
+
+        const activity = activities.find((a) => a.id === qrData.activityId);
+        if (!activity) {
+          Taro.showModal({
+            title: '❌ 活动不存在',
+            content: `签到码对应的活动"${qrData.activityTitle}"不存在或已删除。`,
+            showCancel: false,
+            confirmText: '知道了'
           });
           return;
         }
@@ -99,18 +145,31 @@ const SignupPage: React.FC = () => {
         const myRecord = mySignups.find((s) => s.activityId === qrData.activityId);
         if (!myRecord) {
           Taro.showModal({
-            title: '签到失败',
-            content: `您未报名"${qrData.activityTitle}"活动`,
-            showCancel: false
+            title: '❌ 签到失败',
+            content: `您未报名"${qrData.activityTitle}"活动。\n\n请先到活动广场完成报名后再签到。`,
+            showCancel: false,
+            confirmText: '知道了'
+          });
+          return;
+        }
+
+        if (myRecord.status === 'waitlist') {
+          Taro.showModal({
+            title: '⚠️ 候补状态',
+            content: `您当前在"${qrData.activityTitle}"的候补中，暂无法签到。\n\n请等待团长确认候补转正后再操作。`,
+            showCancel: false,
+            confirmText: '知道了'
           });
           return;
         }
 
         if (myRecord.checkinStatus !== 'not_checked') {
+          const statusText = getCheckinStatusText(myRecord.checkinStatus);
           Taro.showModal({
-            title: '重复签到',
-            content: `您已${getCheckinStatusText(myRecord.checkinStatus)}，无需重复操作`,
-            showCancel: false
+            title: '⚠️ 重复签到',
+            content: `您已在"${qrData.activityTitle}"活动中${statusText}。\n\n签到时间: ${myRecord.checkinTime ? formatDate(myRecord.checkinTime, 'HH:mm') : '已记录'}\n\n无需重复操作。`,
+            showCancel: false,
+            confirmText: '知道了'
           });
           return;
         }
@@ -118,16 +177,19 @@ const SignupPage: React.FC = () => {
         const now = new Date();
         const isLate = false;
         Taro.showModal({
-          title: '确认签到',
-          content: `活动: ${qrData.activityTitle}\n时间: ${formatDate(now, 'HH:mm')}\n\n确认到场签到？`,
+          title: '✅ 确认签到',
+          content: `活动: ${qrData.activityTitle}\n时间: ${formatDate(now, 'HH:mm')}\n配速组: ${myRecord.paceGroupName}\n\n确认到场签到吗？`,
+          confirmText: '确认签到',
+          cancelText: '取消',
           success: (modalRes) => {
             if (modalRes.confirm) {
               updateCheckinStatus(myRecord.id, isLate ? 'late' : 'checked');
               ensureReviewForActivity(qrData.activityId);
               updateReviewStats(qrData.activityId);
               Taro.showToast({
-                title: isLate ? '已签到（迟到）' : '签到成功',
-                icon: 'success'
+                title: isLate ? '已签到（迟到）' : '🎉 签到成功',
+                icon: 'success',
+                duration: 2000
               });
             }
           }
@@ -138,32 +200,40 @@ const SignupPage: React.FC = () => {
           return;
         }
         Taro.showActionSheet({
-          itemList: ['手动正常签到', '手动迟到签到', '标记退赛'],
+          itemList: pendingSignups.map(
+            (s) => `${s.activityTitle} - ${s.paceGroupName}`
+          ),
           success: (actionRes) => {
-            const statuses = ['checked', 'late', 'withdrawn'] as const;
-            const status = statuses[actionRes.tapIndex];
-            const firstPending = mySignups.find((s) => s.checkinStatus === 'not_checked');
-            if (firstPending) {
-              updateCheckinStatus(firstPending.id, status);
-              ensureReviewForActivity(firstPending.activityId);
-              updateReviewStats(firstPending.activityId);
-              Taro.showToast({
-                title: status === 'checked' ? '签到成功' : status === 'late' ? '已标记迟到' : '已标记退赛',
-                icon: 'success'
-              });
-            } else {
-              Taro.showToast({ title: '没有待签到的活动', icon: 'none' });
-            }
+            const selected = pendingSignups[actionRes.tapIndex];
+            Taro.showActionSheet({
+              itemList: ['手动正常签到', '手动迟到签到', '标记退赛'],
+              success: (statusRes) => {
+                const statuses = ['checked', 'late', 'withdrawn'] as const;
+                const status = statuses[statusRes.tapIndex];
+                updateCheckinStatus(selected.id, status);
+                ensureReviewForActivity(selected.activityId);
+                updateReviewStats(selected.activityId);
+                Taro.showToast({
+                  title: status === 'checked' ? '签到成功' : status === 'late' ? '已标记迟到' : '已标记退赛',
+                  icon: 'success'
+                });
+              }
+            });
           }
         });
       }
     });
   };
 
-  const handleMarkStatus = (signupId: string, activityId: string, status: 'checked' | 'late' | 'withdrawn') => {
+  const handleMarkStatus = (signupId: string, activityId: string, memberName: string, status: 'checked' | 'late' | 'withdrawn') => {
+    const statusMap = {
+      checked: '正常签到',
+      late: '迟到',
+      withdrawn: '退赛'
+    };
     Taro.showModal({
       title: '确认操作',
-      content: `确定要将此记录标记为${status === 'checked' ? '正常签到' : status === 'late' ? '迟到' : '退赛'}吗？`,
+      content: `确定要将 ${memberName} 标记为${statusMap[status]}吗？`,
       success: (res) => {
         if (res.confirm) {
           updateCheckinStatus(signupId, status);
@@ -215,9 +285,9 @@ const SignupPage: React.FC = () => {
             <Text className={styles.scanIcon}>📷</Text>
             <View className={styles.scanContent}>
               <Text className={styles.scanText}>使用二维码签到核验</Text>
-              <Text className={styles.scanSub}>成员扫码 → 团长核验 → 完成签到</Text>
+              <Text className={styles.scanSub}>选择活动 → 出示签到码 → 成员扫码完成签到</Text>
             </View>
-            <View className={styles.scanBtn} onClick={handleScanCode}>
+            <View className={styles.scanBtn} onClick={handleShowQRCode}>
               <Text>显示签到码</Text>
             </View>
           </View>
@@ -284,21 +354,24 @@ const SignupPage: React.FC = () => {
                   <View className={styles.actionButtons}>
                     {activeTab === 'manage' && record.checkinStatus === 'not_checked' && (
                       <>
-                        <View className={classnames(styles.btn, styles.btnPrimary)} onClick={() => handleMarkStatus(record.id, record.activityId, 'checked')}>
+                        <View className={classnames(styles.btn, styles.btnPrimary)} onClick={() => handleMarkStatus(record.id, record.activityId, member?.name || '成员', 'checked')}>
                           <Text>签到</Text>
                         </View>
-                        <View className={classnames(styles.btn, styles.btnSecondary)} onClick={() => handleMarkStatus(record.id, record.activityId, 'late')}>
+                        <View className={classnames(styles.btn, styles.btnSecondary)} onClick={() => handleMarkStatus(record.id, record.activityId, member?.name || '成员', 'late')}>
                           <Text>迟到</Text>
                         </View>
-                        <View className={classnames(styles.btn, styles.btnDanger)} onClick={() => handleMarkStatus(record.id, record.activityId, 'withdrawn')}>
+                        <View className={classnames(styles.btn, styles.btnDanger)} onClick={() => handleMarkStatus(record.id, record.activityId, member?.name || '成员', 'withdrawn')}>
                           <Text>退赛</Text>
                         </View>
                       </>
                     )}
-                    {activeTab === 'my' && record.checkinStatus === 'not_checked' && (
+                    {activeTab === 'my' && record.checkinStatus === 'not_checked' && record.status !== 'waitlist' && (
                       <View className={classnames(styles.btn, styles.btnPrimary)} onClick={handleScanCode}>
                         <Text>扫码签到</Text>
                       </View>
+                    )}
+                    {activeTab === 'my' && record.status === 'waitlist' && (
+                      <Text className={styles.waitlistInfo}>候补阶段暂不可签到</Text>
                     )}
                   </View>
                 </View>
@@ -317,12 +390,19 @@ const SignupPage: React.FC = () => {
               <View className={styles.qrMock}>
                 <Text className={styles.qrBig}>📱</Text>
                 <Text className={styles.qrHint}>请让成员扫描此二维码</Text>
-                <Text className={styles.qrSmall}>签到码: ACT-{qrActivityId}</Text>
+                <Text className={styles.qrSmall}>ACT-{qrActivityId}</Text>
               </View>
             </View>
+            <View className={styles.qrCodeData}>
+              <Text className={styles.qrDataLabel}>签到码数据（JSON格式）:</Text>
+              <Text className={styles.qrDataText}>{qrCodeContent}</Text>
+            </View>
             <Text className={styles.qrTips}>
-              成员使用"扫码签到"功能扫描此码{'\n'}
-              即可完成自动签到核验
+              💡 使用说明{'\n'}
+              1. 请成员打开「我的签到」Tab{'\n'}
+              2. 点击「扫码签到」按钮扫描此码{'\n'}
+              3. 扫码后系统自动核验报名信息{'\n'}
+              4. 确认后即完成签到
             </Text>
             <View className={styles.qrClose} onClick={() => setShowQRCode(false)}>
               <Text>关闭</Text>

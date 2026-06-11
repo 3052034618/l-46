@@ -22,6 +22,7 @@ interface PersistedState {
   signupRecords: SignupRecord[];
   reviews: ReviewRecord[];
   memberLocations: MemberLocation[];
+  members: Member[];
 }
 
 const loadPersistedState = (): Partial<PersistedState> => {
@@ -79,7 +80,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set, get) => ({
   activities: persisted.activities || mockActivities,
-  members: mockMembers,
+  members: persisted.members || mockMembers,
   signupRecords: persisted.signupRecords || mockSignupRecords,
   reviews: persisted.reviews || mockReviews,
   memberLocations: persisted.memberLocations || mockMemberLocations,
@@ -97,7 +98,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: newActivities,
         signupRecords: state.signupRecords,
         reviews: state.reviews,
-        memberLocations: state.memberLocations
+        memberLocations: state.memberLocations,
+        members: state.members
       });
       return { activities: newActivities };
     });
@@ -129,7 +131,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: newActivities,
         signupRecords: newSignupRecords,
         reviews: state.reviews,
-        memberLocations: state.memberLocations
+        memberLocations: state.memberLocations,
+        members: state.members
       });
 
       return { activities: newActivities, signupRecords: newSignupRecords };
@@ -171,7 +174,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: state.activities,
         signupRecords: newSignupRecords,
         reviews: newReviews,
-        memberLocations: state.memberLocations
+        memberLocations: state.memberLocations,
+        members: state.members
       });
 
       return { signupRecords: newSignupRecords, reviews: newReviews };
@@ -199,7 +203,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: newActivities,
         signupRecords: state.signupRecords,
         reviews: state.reviews,
-        memberLocations: state.memberLocations
+        memberLocations: state.memberLocations,
+        members: state.members
       });
 
       return { activities: newActivities };
@@ -226,6 +231,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         }
         return m;
       });
+
+      persistState({
+        activities: state.activities,
+        signupRecords: state.signupRecords,
+        reviews: state.reviews,
+        memberLocations: state.memberLocations,
+        members: newMembers
+      });
+
       return { members: newMembers };
     });
   },
@@ -252,7 +266,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: state.activities,
         signupRecords: state.signupRecords,
         reviews: state.reviews,
-        memberLocations: newLocations
+        memberLocations: newLocations,
+        members: state.members
       });
 
       return { memberLocations: newLocations };
@@ -269,7 +284,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: state.activities,
         signupRecords: state.signupRecords,
         reviews: state.reviews,
-        memberLocations: newLocations
+        memberLocations: newLocations,
+        members: state.members
       });
 
       return { memberLocations: newLocations };
@@ -286,7 +302,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: state.activities,
         signupRecords: state.signupRecords,
         reviews: state.reviews,
-        memberLocations: newLocations
+        memberLocations: newLocations,
+        members: state.members
       });
 
       return { memberLocations: newLocations };
@@ -303,7 +320,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: state.activities,
         signupRecords: state.signupRecords,
         reviews: newReviews,
-        memberLocations: state.memberLocations
+        memberLocations: state.memberLocations,
+        members: state.members
       });
 
       return { reviews: newReviews };
@@ -325,7 +343,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: state.activities,
         signupRecords: state.signupRecords,
         reviews: newReviews,
-        memberLocations: state.memberLocations
+        memberLocations: state.memberLocations,
+        members: state.members
       });
 
       return { reviews: newReviews };
@@ -354,7 +373,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: state.activities,
         signupRecords: state.signupRecords,
         reviews: newReviews,
-        memberLocations: newLocations
+        memberLocations: newLocations,
+        members: state.members
       });
 
       return { reviews: newReviews, memberLocations: newLocations };
@@ -403,7 +423,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: state.activities,
         signupRecords: state.signupRecords,
         reviews: newReviews,
-        memberLocations: state.memberLocations
+        memberLocations: state.memberLocations,
+        members: state.members
       });
       return { reviews: newReviews };
     });
@@ -413,7 +434,20 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   updateReviewStats: (activityId) => {
     set((state) => {
+      const activity = state.getActivity(activityId);
       const activitySignups = state.signupRecords.filter((s) => s.activityId === activityId);
+
+      const paceGroupLists = activity
+        ? activity.paceGroups.map((pg) => ({
+            groupId: pg.id,
+            groupName: pg.name,
+            pace: pg.pace,
+            members: activitySignups
+              .filter((s) => s.paceGroupId === pg.id && s.status === 'approved')
+              .map((s) => ({ id: s.memberId, name: s.memberName }))
+          }))
+        : [];
+
       const newReviews = state.reviews.map((r) =>
         r.activityId === activityId
           ? {
@@ -421,7 +455,8 @@ export const useAppStore = create<AppState>((set, get) => ({
               totalMembers: activitySignups.length,
               checkedMembers: activitySignups.filter((s) => s.checkinStatus === 'checked').length,
               lateMembers: activitySignups.filter((s) => s.checkinStatus === 'late').length,
-              withdrawnMembers: activitySignups.filter((s) => s.checkinStatus === 'withdrawn').length
+              withdrawnMembers: activitySignups.filter((s) => s.checkinStatus === 'withdrawn').length,
+              paceGroupLists
             }
           : r
       );
@@ -430,7 +465,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: state.activities,
         signupRecords: state.signupRecords,
         reviews: newReviews,
-        memberLocations: state.memberLocations
+        memberLocations: state.memberLocations,
+        members: state.members
       });
 
       return { reviews: newReviews };
