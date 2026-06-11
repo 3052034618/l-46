@@ -1,0 +1,180 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  padding-bottom: 120rpx;
+}
+
+.tabs {
+  display: flex;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  margin-bottom: $spacing-md;
+  padding: $spacing-xs;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-md 0;
+  font-size: $font-size-md;
+  border-radius: $radius-md;
+  color: $color-text-secondary;
+  transition: all $transition-base;
+}
+
+.tabActive {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+}
+
+.signupCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.cardTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  flex: 1;
+  @include text-ellipsis;
+}
+
+.cardInfo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.infoIcon {
+  margin-right: $spacing-xs;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.paceInfo {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.actionButtons {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.btn {
+  @include button-reset;
+  padding: 0 $spacing-lg;
+  height: $button-height-sm;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: all $transition-base;
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.btnSecondary {
+  background: $color-bg-hover;
+  color: $color-text-secondary;
+  border: 1rpx solid $color-border;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.btnDanger {
+  background: rgba(245, 63, 63, 0.1);
+  color: $color-error;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.emptyState {
+  text-align: center;
+  padding: $spacing-xl * 3 0;
+  color: $color-text-tertiary;
+}
+
+.emptyIcon {
+  font-size: 120rpx;
+  margin-bottom: $spacing-md;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: $font-size-md;
+}
+
+.scanCodeTip {
+  background: linear-gradient(135deg, rgba(46, 196, 182, 0.1) 0%, rgba(46, 196, 182, 0.05) 100%);
+  border: 1rpx solid rgba(46, 196, 182, 0.3);
+  border-radius: $radius-md;
+  padding: $spacing-md $spacing-lg;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+}
+
+.scanIcon {
+  font-size: 48rpx;
+  margin-right: $spacing-md;
+}
+
+.scanText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  flex: 1;
+}
+
+.scanBtn {
+  @include button-reset;
+  padding: 0 $spacing-lg;
+  height: $button-height-sm;
+  border-radius: $radius-button;
+  background: $color-secondary;
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+
+  &:active {
+    opacity: 0.9;
+  }
+}

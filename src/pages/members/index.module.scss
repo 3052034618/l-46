@@ -1,0 +1,157 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  padding-bottom: 120rpx;
+}
+
+.statsOverview {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  padding: $spacing-xl $page-padding;
+  margin: 0 (-$page-padding) $spacing-md;
+  border-radius: 0 0 $radius-xl $radius-xl;
+  color: $color-text-white;
+}
+
+.statsTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-md;
+}
+
+.statsGrid {
+  display: flex;
+  justify-content: space-between;
+}
+
+.statCard {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-md;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: $radius-md;
+  margin: 0 $spacing-xs;
+
+  &:first-child { margin-left: 0; }
+  &:last-child { margin-right: 0; }
+}
+
+.statValue {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  margin-bottom: 4rpx;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  opacity: 0.9;
+}
+
+.filterBar {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.filterTag {
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-round;
+  background: $color-bg-card;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  transition: all $transition-base;
+}
+
+.filterActive {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.searchIcon {
+  font-size: 32rpx;
+  margin-right: $spacing-sm;
+  color: $color-text-tertiary;
+}
+
+.searchInput {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.memberList {
+  display: flex;
+  flex-direction: column;
+}
+
+.attendanceCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.cardTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+}
+
+.cardIcon {
+  margin-right: $spacing-sm;
+}
+
+.attendanceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm 0;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child { border-bottom: none; }
+}
+
+.attendanceLabel {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+.attendanceValue {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.attendanceBar {
+  width: 100%;
+  height: 16rpx;
+  background: $color-divider;
+  border-radius: $radius-round;
+  overflow: hidden;
+  margin-top: $spacing-sm;
+}
+
+.attendanceFill {
+  height: 100%;
+  background: linear-gradient(90deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-round;
+  transition: width $transition-slow;
+}

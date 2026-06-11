@@ -1,0 +1,84 @@
+@use '@/styles/variables.scss' as *;
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 20rpx;
+  border-radius: $radius-round;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: $radius-round;
+  margin-right: 8rpx;
+}
+
+.upcoming {
+  background-color: rgba(22, 93, 255, 0.1);
+  color: $color-info;
+  .dot { background-color: $color-info; }
+}
+
+.ongoing {
+  background-color: rgba(0, 180, 42, 0.1);
+  color: $color-success;
+  .dot { background-color: $color-success; }
+}
+
+.finished {
+  background-color: rgba(134, 144, 156, 0.1);
+  color: $color-text-tertiary;
+  .dot { background-color: $color-text-tertiary; }
+}
+
+.cancelled {
+  background-color: rgba(245, 63, 63, 0.1);
+  color: $color-error;
+  .dot { background-color: $color-error; }
+}
+
+.checked {
+  background-color: rgba(0, 180, 42, 0.1);
+  color: $color-success;
+  .dot { background-color: $color-success; }
+}
+
+.late {
+  background-color: rgba(255, 125, 0, 0.1);
+  color: $color-warning;
+  .dot { background-color: $color-warning; }
+}
+
+.withdrawn {
+  background-color: rgba(245, 63, 63, 0.1);
+  color: $color-error;
+  .dot { background-color: $color-error; }
+}
+
+.not_checked {
+  background-color: rgba(134, 144, 156, 0.1);
+  color: $color-text-tertiary;
+  .dot { background-color: $color-text-tertiary; }
+}
+
+.approved {
+  background-color: rgba(0, 180, 42, 0.1);
+  color: $color-success;
+  .dot { background-color: $color-success; }
+}
+
+.pending {
+  background-color: rgba(255, 125, 0, 0.1);
+  color: $color-warning;
+  .dot { background-color: $color-warning; }
+}
+
+.waitlist {
+  background-color: rgba(22, 93, 255, 0.1);
+  color: $color-info;
+  .dot { background-color: $color-info; }
+}

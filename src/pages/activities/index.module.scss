@@ -1,0 +1,96 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  padding-bottom: 120rpx;
+}
+
+.hero {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  padding: $spacing-xl $page-padding $spacing-lg;
+  margin: 0 (-$page-padding) $spacing-md;
+  color: $color-text-white;
+}
+
+.heroTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-xs;
+}
+
+.heroSubtitle {
+  font-size: $font-size-sm;
+  opacity: 0.9;
+  margin-bottom: $spacing-lg;
+}
+
+.heroStats {
+  display: flex;
+  gap: $spacing-xl;
+}
+
+.statItem {
+  text-align: center;
+}
+
+.statNum {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  opacity: 0.85;
+}
+
+.filterBar {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  overflow-x: auto;
+  padding-bottom: $spacing-xs;
+}
+
+.filterItem {
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-round;
+  font-size: $font-size-sm;
+  background: $color-bg-card;
+  color: $color-text-secondary;
+  white-space: nowrap;
+  transition: all $transition-base;
+}
+
+.filterActive {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
+.fab {
+  position: fixed;
+  right: $page-padding;
+  bottom: 200rpx;
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  font-size: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.4);
+  z-index: 100;
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.emptyState {
+  text-align: center;
+  padding: $spacing-xl * 2 0;
+  color: $color-text-tertiary;
+  font-size: $font-size-md;
+}

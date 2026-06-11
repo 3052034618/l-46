@@ -1,0 +1,61 @@
+@use '@/styles/variables.scss' as *;
+
+.card {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: $radius-round;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-xs;
+}
+
+.name {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-right: $spacing-sm;
+  @include text-ellipsis;
+}
+
+.stats {
+  display: flex;
+  gap: $spacing-md;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+}
+
+.statNum {
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+  margin-right: 4rpx;
+}
