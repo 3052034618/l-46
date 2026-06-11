@@ -179,6 +179,36 @@
   }
 }
 
+.btnPromote {
+  @include button-reset;
+  padding: 0 $spacing-md;
+  height: $button-height-sm;
+  border-radius: $radius-button;
+  background: linear-gradient(135deg, $color-secondary 0%, #39d9c9 100%);
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.qrReal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-md;
+  background: #ffffff;
+  border-radius: $radius-md;
+
+  svg {
+    width: 320rpx;
+    height: 320rpx;
+  }
+}
+
 .myStatsCard {
   background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
   border-radius: $radius-xl;

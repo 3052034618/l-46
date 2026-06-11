@@ -16,6 +16,7 @@ const ActivityDetailPage: React.FC = () => {
   const activities = useAppStore((state) => state.activities);
   const addSignup = useAppStore((state) => state.addSignup);
   const signupRecords = useAppStore((state) => state.signupRecords);
+  const promoteWaitlistToApproved = useAppStore((state) => state.promoteWaitlistToApproved);
   const currentUserId = useAppStore((state) => state.currentUserId);
   const members = useAppStore((state) => state.members);
   const ensureReviewForActivity = useAppStore((state) => state.ensureReviewForActivity);
@@ -90,6 +91,27 @@ const ActivityDetailPage: React.FC = () => {
       success: (res) => {
         if (res.confirm) {
           Taro.showToast({ title: '已取消报名', icon: 'success' });
+        }
+      }
+    });
+  };
+
+  const waitlistMembers = useMemo(() => {
+    return signupRecords.filter(
+      (s) => s.activityId === activityId && s.status === 'waitlist'
+    );
+  }, [signupRecords, activityId]);
+
+  const handlePromoteMember = (signupId: string, memberName: string) => {
+    Taro.showModal({
+      title: '候补转正',
+      content: `确定要将 ${memberName} 转为正式报名吗？\n\n转正后活动人数和配速组人数将同步更新。`,
+      success: (res) => {
+        if (res.confirm) {
+          promoteWaitlistToApproved(signupId);
+          ensureReviewForActivity(activityId);
+          updateReviewStats(activityId);
+          Taro.showToast({ title: `${memberName} 已转正`, icon: 'success' });
         }
       }
     });
@@ -214,6 +236,36 @@ const ActivityDetailPage: React.FC = () => {
             );
           })}
         </View>
+
+        {waitlistMembers.length > 0 && (
+          <View className={styles.card}>
+            <View className={styles.cardTitle}>
+              <Text className={styles.cardIcon}>⏳</Text>
+              <Text>候补名单（{waitlistMembers.length}人）</Text>
+            </View>
+            {waitlistMembers.map((ws) => {
+              const member = members.find((m) => m.id === ws.memberId);
+              return (
+                <View key={ws.id} className={styles.waitlistItem}>
+                  <View className={styles.waitlistInfo}>
+                    {member && (
+                      <Image src={member.avatar} className={styles.waitlistAvatar} mode="aspectFill" />
+                    )}
+                    <View>
+                      <Text className={styles.waitlistName}>{ws.memberName}</Text>
+                      <Text className={styles.waitlistMeta}>
+                        候补组: {ws.paceGroupName} · 报名时间 {new Date(ws.signupTime).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}
+                      </Text>
+                    </View>
+                  </View>
+                  <View className={styles.promoteBtn} onClick={() => handlePromoteMember(ws.id, ws.memberName)}>
+                    <Text>转正</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
 
         {activity.supplyPoints.length > 0 && (
           <View className={styles.card}>

@@ -66,7 +66,7 @@ interface AppState {
 
   updatePaceGroupMembers: (activityId: string, paceGroupId: string, delta: number) => void;
   updateMemberAttendance: (memberId: string, status: CheckinStatus) => void;
-
+  promoteWaitlistToApproved: (signupId: string) => void;
   reportLocation: (memberId: string, memberName: string, lng: number, lat: number) => void;
   setMemberReturned: (memberId: string) => void;
   remindMember: (memberId: string) => void;
@@ -213,20 +213,23 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   updateMemberAttendance: (memberId, status) => {
     set((state) => {
+      const memberSignups = state.signupRecords.filter((s) => s.memberId === memberId && s.status === 'approved');
+      const totalCount = memberSignups.length;
+      const checkedCount = memberSignups.filter(
+        (s) => s.checkinStatus === 'checked'
+      ).length;
+      const lateCount = memberSignups.filter(
+        (s) => s.checkinStatus === 'late'
+      ).length;
+      const attendedCount = checkedCount + lateCount;
+      const rate = totalCount > 0 ? Math.round((attendedCount / totalCount) * 100) : 0;
+
       const newMembers = state.members.map((m) => {
         if (m.id === memberId) {
-          const totalSignups = state.signupRecords.filter((s) => s.memberId === memberId).length;
-          const attendedCount = state.signupRecords.filter(
-            (s) => s.memberId === memberId && (s.checkinStatus === 'checked' || s.checkinStatus === 'late')
-          ).length;
-          const lateCount = state.signupRecords.filter(
-            (s) => s.memberId === memberId && s.checkinStatus === 'late'
-          ).length;
-          const rate = totalSignups > 0 ? Math.round((attendedCount / totalSignups) * 100) : m.attendanceRate;
           return {
             ...m,
             attendanceRate: rate,
-            totalRuns: m.totalRuns + (status === 'checked' || status === 'late' ? 1 : 0)
+            totalRuns: attendedCount
           };
         }
         return m;
@@ -241,6 +244,75 @@ export const useAppStore = create<AppState>((set, get) => ({
       });
 
       return { members: newMembers };
+    });
+  },
+
+  promoteWaitlistToApproved: (signupId) => {
+    set((state) => {
+      const targetSignup = state.signupRecords.find((s) => s.id === signupId);
+      if (!targetSignup || targetSignup.status !== 'waitlist') {
+        return state;
+      }
+
+      const activity = state.activities.find((a) => a.id === targetSignup.activityId);
+      const paceGroup = activity?.paceGroups.find((pg) => pg.id === targetSignup.paceGroupId);
+      if (paceGroup && paceGroup.currentMembers >= paceGroup.maxMembers) {
+        Taro.showToast({ title: '该配速组已满员，无法转正', icon: 'none' });
+        return state;
+      }
+
+      const newSignupRecords = state.signupRecords.map((s) =>
+        s.id === signupId ? { ...s, status: 'approved' as SignupStatus } : s
+      );
+
+      const newActivities = state.activities.map((a) => {
+        if (a.id === targetSignup.activityId) {
+          return {
+            ...a,
+            currentMembers: a.currentMembers + 1,
+            paceGroups: a.paceGroups.map((pg) =>
+              pg.id === targetSignup.paceGroupId
+                ? { ...pg, currentMembers: pg.currentMembers + 1 }
+                : pg
+            )
+          };
+        }
+        return a;
+      });
+
+      const activitySignups = newSignupRecords.filter((s) => s.activityId === targetSignup.activityId);
+      const updatedActivity = newActivities.find((a) => a.id === targetSignup.activityId);
+
+      const paceGroupLists = updatedActivity
+        ? updatedActivity.paceGroups.map((pg) => ({
+            groupId: pg.id,
+            groupName: pg.name,
+            pace: pg.pace,
+            members: activitySignups
+              .filter((s) => s.paceGroupId === pg.id && s.status === 'approved')
+              .map((s) => ({ id: s.memberId, name: s.memberName }))
+          }))
+        : [];
+
+      const newReviews = state.reviews.map((r) =>
+        r.activityId === targetSignup.activityId
+          ? {
+              ...r,
+              totalMembers: activitySignups.length,
+              paceGroupLists
+            }
+          : r
+      );
+
+      persistState({
+        activities: newActivities,
+        signupRecords: newSignupRecords,
+        reviews: newReviews,
+        memberLocations: state.memberLocations,
+        members: state.members
+      });
+
+      return { activities: newActivities, signupRecords: newSignupRecords, reviews: newReviews };
     });
   },
 
