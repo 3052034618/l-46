@@ -28,6 +28,7 @@ export interface MemberLocation {
   lat: number;
   timestamp: number;
   isReturned: boolean;
+  reminded?: boolean;
 }
 
 export interface Activity {
@@ -91,8 +92,9 @@ export interface ReviewRecord {
   lateMembers: number;
   withdrawnMembers: number;
   photos: string[];
-  feedbacks: ActivityFeedback[];
+  feedbacks: ReviewFeedback[];
   unreturnedMembers: string[];
+  remindedMembers: string[];
   paceGroupLists: PaceGroupList[];
   createdAt: string;
 }
@@ -104,7 +106,7 @@ export interface PaceGroupList {
   members: { id: string; name: string }[];
 }
 
-export interface ActivityFeedback {
+export interface ReviewFeedback {
   id: string;
   memberId: string;
   memberName: string;

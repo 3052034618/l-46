@@ -121,10 +121,128 @@
 .photoAdd {
   background: $color-bg-hover;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 64rpx;
+  gap: $spacing-xs;
   color: $color-text-tertiary;
+  border: 2rpx dashed $color-border;
+}
+
+.photoAddIcon {
+  font-size: 56rpx;
+  line-height: 1;
+}
+
+.photoAddText {
+  font-size: $font-size-xs;
+}
+
+.feedbackForm {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.04) 0%, rgba(46, 196, 182, 0.04) 100%);
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  border: 2rpx solid $color-divider;
+}
+
+.formHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.formTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.formBody {
+  margin-bottom: $spacing-md;
+}
+
+.formLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  display: block;
+  margin-bottom: $spacing-xs;
+}
+
+.formRatingText {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+  margin-top: $spacing-xs;
+}
+
+.formTextareaWrap {
+  margin-bottom: $spacing-md;
+}
+
+.formTextarea {
+  width: 100%;
+  min-height: 160rpx;
+  padding: $spacing-md;
+  border-radius: $radius-md;
+  border: 2rpx solid $color-border;
+  background: $color-bg-card;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  line-height: $line-height-loose;
+  box-sizing: border-box;
+  resize: none;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+  }
+}
+
+.submitBtn {
+  @include button-reset;
+  width: 100%;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.btnDisabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.alertReminded {
+  background: rgba(245, 158, 11, 0.08) !important;
+  border-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+.remindedBadge {
+  font-size: $font-size-xs;
+  color: #f59e0b;
+  font-weight: $font-weight-semibold;
+}
+
+.starInteractive {
+  cursor: pointer;
+  font-size: 40rpx !important;
+  padding: 4rpx;
+}
+
+.emptyHint {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  display: block;
+  margin-top: $spacing-sm;
 }
 
 .feedbackItem {

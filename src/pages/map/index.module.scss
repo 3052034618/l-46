@@ -102,12 +102,28 @@
   box-shadow: $shadow-float;
 }
 
+.markerDotSelf {
+  width: 44rpx;
+  height: 44rpx;
+  border: 6rpx solid $color-bg-card;
+  box-shadow: 0 0 0 4rpx rgba(46, 196, 182, 0.3);
+}
+
 .markerActive {
   background: $color-success;
 }
 
 .markerWarning {
   background: $color-error;
+}
+
+.markerReminded {
+  background: #f59e0b !important;
+  box-shadow: 0 0 0 4rpx rgba(245, 158, 11, 0.3) !important;
+}
+
+.markerSelf {
+  z-index: 10;
 }
 
 .markerLabel {
@@ -119,6 +135,33 @@
   margin-top: 4rpx;
   box-shadow: $shadow-card;
   white-space: nowrap;
+}
+
+.mapLegend {
+  position: absolute;
+  bottom: $spacing-md;
+  right: $spacing-md;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: $radius-md;
+  padding: $spacing-sm $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  box-shadow: $shadow-float;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.legendDot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: $radius-round;
 }
 
 .section {
@@ -197,12 +240,26 @@
   margin-bottom: $spacing-sm;
 }
 
+.myLocationCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+  border: 2rpx dashed $color-primary;
+}
+
 .safe {
   background: rgba(0, 180, 42, 0.06);
 }
 
 .unsafe {
   background: rgba(245, 63, 63, 0.06);
+}
+
+.reminded {
+  background: rgba(245, 158, 11, 0.08) !important;
 }
 
 .safetyMember {
@@ -224,6 +281,26 @@
   font-weight: $font-weight-medium;
 }
 
+.locationTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  display: block;
+  margin-top: 4rpx;
+}
+
+.myLocationTime {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  display: block;
+  margin-top: 4rpx;
+}
+
+.remindedTag {
+  font-size: $font-size-xs;
+  color: #f59e0b;
+  font-weight: $font-weight-semibold;
+}
+
 .safetyStatus {
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
@@ -231,14 +308,28 @@
   border-radius: $radius-round;
 }
 
+.safetyActions {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  align-items: flex-end;
+}
+
 .statusSafe {
   color: $color-success;
   background: rgba(0, 180, 42, 0.1);
 }
 
+.statusReturned {
+  color: $color-primary;
+  background: rgba(255, 107, 53, 0.1);
+  cursor: pointer;
+}
+
 .statusUnsafe {
   color: $color-error;
   background: rgba(245, 63, 63, 0.1);
+  cursor: pointer;
 }
 
 .reportBtn {

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import Taro, { useRouter } from '@tarojs/taro';
+import Taro, { useRouter, useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import classnames from 'classnames';
 import { useAppStore } from '../../store';
@@ -12,15 +12,25 @@ import type { PaceLevel, SignupStatus, CheckinStatus } from '../../types';
 const ActivityDetailPage: React.FC = () => {
   const router = useRouter();
   const activityId = router.params.id as string;
-  const getActivity = useAppStore((state) => state.getActivity);
+
+  const activities = useAppStore((state) => state.activities);
   const addSignup = useAppStore((state) => state.addSignup);
   const signupRecords = useAppStore((state) => state.signupRecords);
   const currentUserId = useAppStore((state) => state.currentUserId);
   const members = useAppStore((state) => state.members);
-  const currentUser = members.find((m) => m.id === currentUserId);
+  const ensureReviewForActivity = useAppStore((state) => state.ensureReviewForActivity);
+  const updateReviewStats = useAppStore((state) => state.updateReviewStats);
 
-  const activity = useMemo(() => getActivity(activityId), [getActivity, activityId]);
+  const currentUser = members.find((m) => m.id === currentUserId);
+  const activity = useMemo(() => activities.find((a) => a.id === activityId), [activities, activityId]);
+
   const [selectedGroup, setSelectedGroup] = useState<string>('');
+
+  useDidShow(() => {
+    if (activity) {
+      updateReviewStats(activityId);
+    }
+  });
 
   const mySignup = useMemo(() => {
     return signupRecords.find(
@@ -58,10 +68,15 @@ const ActivityDetailPage: React.FC = () => {
     };
 
     addSignup(record);
+    ensureReviewForActivity(activityId);
+    updateReviewStats(activityId);
+
     Taro.showToast({
-      title: isFull ? '已加入候补' : '报名成功',
+      title: isFull ? '已加入候补，等待空位' : '报名成功',
       icon: 'success'
     });
+
+    setSelectedGroup('');
   };
 
   const handleCheckin = () => {
@@ -159,7 +174,7 @@ const ActivityDetailPage: React.FC = () => {
         <View className={styles.card}>
           <View className={styles.cardTitle}>
             <Text className={styles.cardIcon}>🏃</Text>
-            <Text>配速分组</Text>
+            <Text>配速分组（点击选择后报名）</Text>
           </View>
           {activity.paceGroups.map((pg) => {
             const progress = Math.min(100, (pg.currentMembers / pg.maxMembers) * 100);
@@ -167,8 +182,8 @@ const ActivityDetailPage: React.FC = () => {
             return (
               <View
                 key={pg.id}
-                className={classnames(styles.paceGroupCard, selectedGroup === pg.id && !isFull && styles.selected)}
-                onClick={() => !isFull && setSelectedGroup(pg.id)}
+                className={classnames(styles.paceGroupCard, selectedGroup === pg.id && styles.selected)}
+                onClick={() => setSelectedGroup(pg.id)}
                 style={{
                   border: selectedGroup === pg.id ? `2rpx solid ${pg.level === 'fast' ? '#f53f3f' : pg.level === 'medium' ? '#ff7d00' : '#00b42a'}` : 'none'
                 }}
@@ -178,8 +193,8 @@ const ActivityDetailPage: React.FC = () => {
                     <PaceGroupTag level={pg.level} name={pg.name} />
                     <Text style={{ fontSize: '24rpx', color: '#86909c' }}>{pg.pace}</Text>
                   </View>
-                  <Text style={{ fontSize: '24rpx', color: isFull ? '#f53f3f' : '#4e5969' }}>
-                    {isFull ? '已满' : `${pg.currentMembers}/${pg.maxMembers}`}
+                  <Text style={{ fontSize: '24rpx', color: isFull ? '#f53f3f' : '#4e5969', fontWeight: 600 }}>
+                    {isFull ? `已满（${pg.currentMembers}/${pg.maxMembers}）` : `${pg.currentMembers}/${pg.maxMembers}`}
                   </Text>
                 </View>
                 <View className={styles.paceGroupProgress}>
@@ -189,7 +204,11 @@ const ActivityDetailPage: React.FC = () => {
                   />
                 </View>
                 <View className={styles.paceGroupFooter}>
-                  <Text>{isFull ? '候补报名' : '点击选择此分组'}</Text>
+                  {isFull ? (
+                    <Text style={{ color: '#f53f3f' }}>👉 可候补报名，有位置自动补上</Text>
+                  ) : (
+                    <Text>{selectedGroup === pg.id ? '✓ 已选择此分组' : '点击选择此分组'}</Text>
+                  )}
                 </View>
               </View>
             );
@@ -236,8 +255,8 @@ const ActivityDetailPage: React.FC = () => {
                 <Text>活动已结束</Text>
               </View>
             ) : (
-              <View className={styles.disabledBtn}>
-                <Text>已{mySignup.status === 'waitlist' ? '候补' : '报名'}</Text>
+              <View className={styles.successBtn}>
+                <Text>✓ 已{mySignup.status === 'waitlist' ? '候补' : '报名'}</Text>
               </View>
             )}
           </>
@@ -247,7 +266,7 @@ const ActivityDetailPage: React.FC = () => {
               <Text>返回</Text>
             </View>
             <View className={styles.primaryBtn} onClick={handleSignup}>
-              <Text>立即报名</Text>
+              <Text>立即报名{selectedGroup ? '（已选组）' : ''}</Text>
             </View>
           </>
         ) : activity.status === 'ongoing' ? (

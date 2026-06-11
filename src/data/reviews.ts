@@ -44,6 +44,7 @@ export const mockReviews: ReviewRecord[] = [
       }
     ],
     unreturnedMembers: [],
+    remindedMembers: [],
     paceGroupLists: [
       {
         groupId: 'pg6',
