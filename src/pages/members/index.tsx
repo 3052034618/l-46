@@ -33,7 +33,9 @@ const MembersPage: React.FC = () => {
     const avgAttendance = Math.round(
       members.reduce((sum, m) => sum + m.attendanceRate, 0) / members.length
     );
-    const checkedCount = signupRecords.filter((s) => s.checkinStatus === 'checked').length;
+    const checkedCount = signupRecords.filter(
+      (s) => s.status === 'approved' && s.checkinStatus === 'checked'
+    ).length;
     return {
       totalMembers: members.length,
       totalRuns,

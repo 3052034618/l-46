@@ -109,16 +109,6 @@ const SignupPage: React.FC = () => {
       return;
     }
 
-    const pendingSignups = mySignups.filter((s) => s.checkinStatus === 'not_checked');
-    if (pendingSignups.length === 0) {
-      Taro.showModal({
-        title: '已完成签到',
-        content: '您报名的所有活动均已签到，无需重复操作~',
-        showCancel: false
-      });
-      return;
-    }
-
     Taro.scanCode({
       onlyFromCamera: false,
       scanType: ['qrCode', 'barCode'],
@@ -238,13 +228,22 @@ const SignupPage: React.FC = () => {
       content: `确定要将 ${memberName} 转为"${activityTitle}"的正式报名吗？\n\n转正后活动人数和配速组人数将同步更新。`,
       success: (res) => {
         if (res.confirm) {
-          promoteWaitlistToApproved(signupId);
+          const result = promoteWaitlistToApproved(signupId);
           const record = signupRecords.find((s) => s.id === signupId);
-          if (record) {
-            ensureReviewForActivity(record.activityId);
-            updateReviewStats(record.activityId);
+          if (result.success) {
+            if (record) {
+              ensureReviewForActivity(record.activityId);
+              updateReviewStats(record.activityId);
+            }
+            Taro.showToast({ title: `${memberName} 已转正`, icon: 'success' });
+          } else {
+            Taro.showModal({
+              title: '❌ 转正失败',
+              content: result.message || '请稍后重试',
+              showCancel: false,
+              confirmText: '知道了'
+            });
           }
-          Taro.showToast({ title: `${memberName} 已转正`, icon: 'success' });
         }
       }
     });

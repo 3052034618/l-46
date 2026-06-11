@@ -66,7 +66,7 @@ interface AppState {
 
   updatePaceGroupMembers: (activityId: string, paceGroupId: string, delta: number) => void;
   updateMemberAttendance: (memberId: string, status: CheckinStatus) => void;
-  promoteWaitlistToApproved: (signupId: string) => void;
+  promoteWaitlistToApproved: (signupId: string) => { success: boolean; message?: string };
   reportLocation: (memberId: string, memberName: string, lng: number, lat: number) => void;
   setMemberReturned: (memberId: string) => void;
   remindMember: (memberId: string) => void;
@@ -141,12 +141,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   updateCheckinStatus: (signupId, status) => {
     set((state) => {
+      const targetSignup = state.signupRecords.find((s) => s.id === signupId);
       const newSignupRecords = state.signupRecords.map((s) =>
         s.id === signupId ? { ...s, checkinStatus: status, checkinTime: new Date().toISOString() } : s
       );
 
-      const targetSignup = state.signupRecords.find((s) => s.id === signupId);
       let newReviews = state.reviews;
+      let newMembers = state.members;
 
       if (targetSignup) {
         newReviews = state.reviews.map((r) => {
@@ -167,7 +168,20 @@ export const useAppStore = create<AppState>((set, get) => ({
           return r;
         });
 
-        get().updateMemberAttendance(targetSignup.memberId, status);
+        const memberSignups = newSignupRecords.filter(
+          (s) => s.memberId === targetSignup.memberId && s.status === 'approved'
+        );
+        const totalCount = memberSignups.length;
+        const checkedCount = memberSignups.filter((s) => s.checkinStatus === 'checked').length;
+        const lateCount = memberSignups.filter((s) => s.checkinStatus === 'late').length;
+        const attendedCount = checkedCount + lateCount;
+        const rate = totalCount > 0 ? Math.round((attendedCount / totalCount) * 100) : 0;
+
+        newMembers = state.members.map((m) =>
+          m.id === targetSignup.memberId
+            ? { ...m, attendanceRate: rate, totalRuns: attendedCount }
+            : m
+        );
       }
 
       persistState({
@@ -175,10 +189,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         signupRecords: newSignupRecords,
         reviews: newReviews,
         memberLocations: state.memberLocations,
-        members: state.members
+        members: newMembers
       });
 
-      return { signupRecords: newSignupRecords, reviews: newReviews };
+      return { signupRecords: newSignupRecords, reviews: newReviews, members: newMembers };
     });
   },
 
@@ -247,25 +261,29 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
   },
 
-  promoteWaitlistToApproved: (signupId) => {
-    set((state) => {
-      const targetSignup = state.signupRecords.find((s) => s.id === signupId);
-      if (!targetSignup || targetSignup.status !== 'waitlist') {
-        return state;
-      }
+  promoteWaitlistToApproved: (signupId: string) => {
+    const state = get();
+    const targetSignup = state.signupRecords.find((s) => s.id === signupId);
 
-      const activity = state.activities.find((a) => a.id === targetSignup.activityId);
-      const paceGroup = activity?.paceGroups.find((pg) => pg.id === targetSignup.paceGroupId);
-      if (paceGroup && paceGroup.currentMembers >= paceGroup.maxMembers) {
-        Taro.showToast({ title: '该配速组已满员，无法转正', icon: 'none' });
-        return state;
-      }
+    if (!targetSignup) {
+      return { success: false, message: '报名记录不存在' };
+    }
+    if (targetSignup.status !== 'waitlist') {
+      return { success: false, message: '该成员已为正式报名，无需重复操作' };
+    }
 
-      const newSignupRecords = state.signupRecords.map((s) =>
+    const activity = state.activities.find((a) => a.id === targetSignup.activityId);
+    const paceGroup = activity?.paceGroups.find((pg) => pg.id === targetSignup.paceGroupId);
+    if (paceGroup && paceGroup.currentMembers >= paceGroup.maxMembers) {
+      return { success: false, message: `「${paceGroup.name}」已满员，无法转正` };
+    }
+
+    set((prevState) => {
+      const newSignupRecords = prevState.signupRecords.map((s) =>
         s.id === signupId ? { ...s, status: 'approved' as SignupStatus } : s
       );
 
-      const newActivities = state.activities.map((a) => {
+      const newActivities = prevState.activities.map((a) => {
         if (a.id === targetSignup.activityId) {
           return {
             ...a,
@@ -280,7 +298,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         return a;
       });
 
-      const activitySignups = newSignupRecords.filter((s) => s.activityId === targetSignup.activityId);
+      const activitySignups = newSignupRecords.filter(
+        (s) => s.activityId === targetSignup.activityId
+      );
       const updatedActivity = newActivities.find((a) => a.id === targetSignup.activityId);
 
       const paceGroupLists = updatedActivity
@@ -294,13 +314,9 @@ export const useAppStore = create<AppState>((set, get) => ({
           }))
         : [];
 
-      const newReviews = state.reviews.map((r) =>
+      const newReviews = prevState.reviews.map((r) =>
         r.activityId === targetSignup.activityId
-          ? {
-              ...r,
-              totalMembers: activitySignups.length,
-              paceGroupLists
-            }
+          ? { ...r, totalMembers: activitySignups.length, paceGroupLists }
           : r
       );
 
@@ -308,12 +324,18 @@ export const useAppStore = create<AppState>((set, get) => ({
         activities: newActivities,
         signupRecords: newSignupRecords,
         reviews: newReviews,
-        memberLocations: state.memberLocations,
-        members: state.members
+        memberLocations: prevState.memberLocations,
+        members: prevState.members
       });
 
-      return { activities: newActivities, signupRecords: newSignupRecords, reviews: newReviews };
+      return {
+        activities: newActivities,
+        signupRecords: newSignupRecords,
+        reviews: newReviews
+      };
     });
+
+    return { success: true, message: '转正成功' };
   },
 
   reportLocation: (memberId, memberName, lng, lat) => {

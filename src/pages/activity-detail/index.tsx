@@ -108,10 +108,19 @@ const ActivityDetailPage: React.FC = () => {
       content: `确定要将 ${memberName} 转为正式报名吗？\n\n转正后活动人数和配速组人数将同步更新。`,
       success: (res) => {
         if (res.confirm) {
-          promoteWaitlistToApproved(signupId);
-          ensureReviewForActivity(activityId);
-          updateReviewStats(activityId);
-          Taro.showToast({ title: `${memberName} 已转正`, icon: 'success' });
+          const result = promoteWaitlistToApproved(signupId);
+          if (result.success) {
+            ensureReviewForActivity(activityId);
+            updateReviewStats(activityId);
+            Taro.showToast({ title: `${memberName} 已转正`, icon: 'success' });
+          } else {
+            Taro.showModal({
+              title: '❌ 转正失败',
+              content: result.message || '请稍后重试',
+              showCancel: false,
+              confirmText: '知道了'
+            });
+          }
         }
       }
     });

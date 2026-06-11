@@ -25,11 +25,15 @@ const MemberDetailPage: React.FC = () => {
 
   const personalStats = useMemo(() => {
     if (!member) return null;
-    const mySignups = signupRecords.filter((s) => s.memberId === member.id);
-    const attended = mySignups.filter((s) => s.checkinStatus === 'checked').length;
-    const late = mySignups.filter((s) => s.checkinStatus === 'late').length;
-    const absent = mySignups.filter((s) => s.checkinStatus === 'withdrawn').length;
-    return { attended, late, absent, total: member.totalRuns };
+    const approvedSignups = signupRecords.filter(
+      (s) => s.memberId === member.id && s.status === 'approved'
+    );
+    const total = approvedSignups.length;
+    const attended = approvedSignups.filter((s) => s.checkinStatus === 'checked').length;
+    const late = approvedSignups.filter((s) => s.checkinStatus === 'late').length;
+    const absent = approvedSignups.filter((s) => s.checkinStatus === 'withdrawn').length;
+    const rate = total > 0 ? Math.round(((attended + late) / total) * 100) : 0;
+    return { attended, late, absent, total, rate };
   }, [member, signupRecords]);
 
   const handleContact = () => {
@@ -72,11 +76,11 @@ const MemberDetailPage: React.FC = () => {
           </View>
           <View className={styles.statsGrid}>
             <View className={styles.statItem}>
-              <Text className={styles.statValue}>{member.totalRuns}</Text>
+              <Text className={styles.statValue}>{personalStats?.total ?? member.totalRuns}</Text>
               <Text className={styles.statLabel}>累计活动</Text>
             </View>
             <View className={styles.statItem}>
-              <Text className={styles.statValue}>{member.attendanceRate}%</Text>
+              <Text className={styles.statValue}>{personalStats?.rate ?? member.attendanceRate}%</Text>
               <Text className={styles.statLabel}>出勤率</Text>
             </View>
             <View className={styles.statItem}>
@@ -95,10 +99,10 @@ const MemberDetailPage: React.FC = () => {
             <View className={styles.attendanceSection}>
               <View className={styles.attendanceHeader}>
                 <Text className={styles.attendanceTitle}>个人出勤率</Text>
-                <Text className={styles.attendanceRate}>{member.attendanceRate}%</Text>
+                <Text className={styles.attendanceRate}>{personalStats.rate}%</Text>
               </View>
               <View className={styles.attendanceBar}>
-                <View className={styles.attendanceFill} style={{ width: `${member.attendanceRate}%` }} />
+                <View className={styles.attendanceFill} style={{ width: `${personalStats.rate}%` }} />
               </View>
               <View className={styles.attendanceBreakdown}>
                 <View className={styles.breakdownItem}>
